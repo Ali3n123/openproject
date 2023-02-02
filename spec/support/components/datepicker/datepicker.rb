@@ -5,6 +5,19 @@ module Components
     include RSpec::Matchers
     attr_reader :context_selector
 
+    def self.update_field(trigger, date)
+      datepicker = Components::Datepicker.new
+
+      datepicker.instance_eval do
+        input = page.find(trigger)
+        input.click
+      end
+
+      date = Date.parse(date) unless date.is_a?(Date)
+      datepicker.set_date(date.strftime('%Y-%m-%d'))
+      datepicker.save!
+    end
+
     def initialize(context = 'body')
       @context_selector = context
     end

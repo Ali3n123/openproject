@@ -81,9 +81,9 @@ module Pages
           when :name
             find('input[name=name]').set value
           when :start_date
-            find('input[name=start_date]').set value
+            ::Components::Datepicker.update_field("#start_date_#{backlog.id}", value)
           when :effective_date
-            find('input[name=effective_date]').set value
+            ::Components::Datepicker.update_field("#effective_date_#{backlog.id}", value)
           else
             raise NotImplementedError
           end

@@ -98,6 +98,7 @@ class JournalsController < ApplicationController
       case @journal.journable_type
       when 'WorkPackage' then :view_work_packages
       when 'Project' then :view_project
+      when 'News' then :view_news
       end
     do_authorize(permission)
   end
@@ -109,7 +110,9 @@ class JournalsController < ApplicationController
 
   def valid_diff?
     valid_field?(params[:field]) &&
-      (@journal.journable.instance_of?(WorkPackage) || @journal.journable.instance_of?(Project))
+      (@journal.journable.instance_of?(WorkPackage) \
+      || @journal.journable.instance_of?(Project) \
+      || @journal.journable.instance_of?(News))
   end
 
   def journals_index_title

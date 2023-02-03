@@ -54,6 +54,8 @@ class TimeEntry < ApplicationRecord
   scopes :of_user_and_day,
          :visible
 
+  register_journal_formatted_fields(:plaintext, 'hours') # Why won't it display?
+
   # TODO: move into service
   before_save :update_costs
 

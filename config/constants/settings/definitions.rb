@@ -34,6 +34,26 @@
 # that is where the value is actually used.
 
 Settings::Definition.define do
+  available_project_modules = %w[calendar
+                                 board_view
+                                 work_package_tracking
+                                 news
+                                 dashboards
+                                 repository
+                                 forums
+                                 activity
+                                 costs
+                                 meetings
+                                 calendar_view
+                                 team_planner_view
+                                 storages
+                                 bim
+                                 documents
+                                 budgets
+                                 backlogs
+                                 github
+                                 wiki]
+
   add :activity_days_default,
       default: 30
 
@@ -318,7 +338,7 @@ Settings::Definition.define do
 
   add :default_projects_modules,
       default: %w[calendar board_view work_package_tracking news costs wiki],
-      allowed: -> { OpenProject::AccessControl.available_project_modules.map(&:to_s) }
+      allowed: -> { available_project_modules }
 
   add :default_projects_public,
       default: false
@@ -349,6 +369,7 @@ Settings::Definition.define do
   add :disabled_modules,
       description: 'A list of module names to prevent access to in the application',
       default: [],
+      allowed: -> { available_project_modules },
       writable: false
 
   add :disable_password_choice,

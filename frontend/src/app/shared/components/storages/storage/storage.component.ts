@@ -82,6 +82,7 @@ import { UploadFile } from 'core-app/core/file-upload/op-file-upload.service';
 import { StorageFilesResourceService } from 'core-app/core/state/storage-files/storage-files.service';
 import { IUploadLink } from 'core-app/core/state/storage-files/upload-link.model';
 import { TimezoneService } from 'core-app/core/datetime/timezone.service';
+import { PathHelperService } from 'core-app/core/path-helper/path-helper.service';
 
 @Component({
   selector: 'op-storage',
@@ -153,7 +154,11 @@ export class StorageComponent extends UntilDestroyedMixin implements OnInit, OnD
     return this.storage._links.open.href;
   }
 
-  private get addFileLinksHref() {
+  private get addFileLinksHref():string {
+    if (isNewResource(this.resource)) {
+      return this.pathHelperService.fileLinksPath();
+    }
+
     return (this.resource.$links as unknown&{ addFileLink:IHalResourceLink }).addFileLink.href;
   }
 
@@ -180,6 +185,7 @@ export class StorageComponent extends UntilDestroyedMixin implements OnInit, OnD
     private readonly cookieService:CookieService,
     private readonly opModalService:OpModalService,
     private readonly timezoneService:TimezoneService,
+    private readonly pathHelperService:PathHelperService,
     private readonly currentUserService:CurrentUserService,
     private readonly fileLinkResourceService:FileLinksResourceService,
     private readonly storageFilesResourceService:StorageFilesResourceService,
@@ -237,9 +243,7 @@ export class StorageComponent extends UntilDestroyedMixin implements OnInit, OnD
       .subscribe((fileLinks) => {
         const locals = {
           storageType: this.storage._links.type.href,
-          storageTypeName: this.storageType,
           storageName: this.storage.name,
-          storageLocation: this.storageFilesLocation,
           storageLink: this.storage._links.self,
           addFileLinksHref: this.addFileLinksHref,
           collectionKey: this.collectionKey,
@@ -263,9 +267,7 @@ export class StorageComponent extends UntilDestroyedMixin implements OnInit, OnD
   private openSelectLocationDialog(files:FileList|null):void {
     const locals = {
       storageType: this.storage._links.type.href,
-      storageTypeName: this.storageType,
       storageName: this.storage.name,
-      storageLocation: this.storageFilesLocation,
       storageLink: this.storage._links.self,
     };
     this.opModalService.show<LocationPickerModalComponent>(LocationPickerModalComponent, 'global', locals)
@@ -322,6 +324,7 @@ export class StorageComponent extends UntilDestroyedMixin implements OnInit, OnD
 
     const formData = new FormData();
     formData.append('file', file, file.name);
+    formData.append('overwrite', 'false');
     const observable = this.http.request<FileUploadResponse>(
       method,
       href,

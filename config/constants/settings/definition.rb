@@ -1166,7 +1166,7 @@ module Settings
         if @all.present? && @all.key?(name)
           @all[name]
         else
-          h = DEFINITIONS[name]
+          h = DEFINITIONS[name.to_sym]
           add(name, **h) if h.present?
         end
       end

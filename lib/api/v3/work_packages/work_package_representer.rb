@@ -332,28 +332,28 @@ module API
 
         property :_meta,
                  if: ->(*) {
-                   respond_to? :matches_query_filters_at_timestamps \
-                   and matches_query_filters_at_timestamps.any?
+                   represented.respond_to?(:matches_query_filters_at_timestamps)
                  },
                  getter: ->(*) {
                    {
                      # This meta property states whether the attributes of the work package at the
                      # last given timestamp (commonly the current time) match the filters of the
                      # query. https://github.com/opf/openproject/pull/11783
-                     #
-                     'matchesFilters': matches_query_filters_at_timestamp?(timestamps.last),
+                     'matchesFilters': represented.matches_query_filters_at_timestamp?(timestamps.last),
 
                      # This meta property states whether the work package exists at the last given
                      # timestamp (commonly the current time).
                      # https://github.com/opf/openproject/pull/11783#issuecomment-1374897874
                      #
-                     'exists': exists_at_timestamps.include?(timestamps.last),
+                     'exists': represented.exists_at_timestamps.include?(timestamps.last),
 
                      # This meta property holds the timestamp of the data of the work package.
                      #
                      'timestamp': timestamps.last.to_s
                    }
-                 }
+                 },
+                 uncacheable: true,
+                 exec_context: :decorator
 
         property :id,
                  render_nil: true
@@ -504,33 +504,20 @@ module API
                  uncachable: true
 
         property :attributes_by_timestamp,
-                 as: :attributesByTimestamp,
-                 if: ->(*) { respond_to?(:attributes_by_timestamp) and attributes_by_timestamp.present? },
+                 if: ->(*) {
+                   represented.respond_to?(:attributes_by_timestamp) && represented.attributes_by_timestamp.present?
+                 },
                  getter: ->(*) do
-                   timestamps.collect do |timestamp|
-                     attrs = attributes_by_timestamp[timestamp.to_s].to_h
-                     if exists_at_timestamps.include?(timestamp)
-                       attrs = attrs.merge({
-                                             '_links': {
-                                               'self': {
-                                                 'href': API::V3::Utilities::PathHelper::ApiV3Path \
-                                                   .work_package(id, timestamps: timestamp)
-                                               }
-                                             }
-                                           })
-                     end
-                     attrs = attrs.merge({
-                                           '_meta': {
-                                             'timestamp': timestamp.to_s,
-                                             'matchesFilters': matches_query_filters_at_timestamp?(timestamp),
-                                             'exists': exists_at_timestamps.include?(timestamp)
-                                           }.compact
-                                         })
-                     attrs
+                   represented.timestamps.collect do |timestamp|
+                     API::V3::WorkPackages::WorkPackageAtTimestampRepresenter
+                       .create(represented,
+                               timestamp:,
+                               current_user:)
                    end
                  end,
                  embedded: true,
-                 uncachable: true
+                 uncacheable: true,
+                 exec_context: :decorator
 
         associated_resource :category
 

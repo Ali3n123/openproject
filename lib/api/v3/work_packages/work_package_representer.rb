@@ -476,33 +476,6 @@ module API
                    status_id && status.is_readonly?
                  end
 
-        property :baseline_attributes,
-                 as: :baselineAttributes,
-                 if: ->(*) { respond_to?(:baseline_attributes) and baseline_timestamp.present? },
-                 getter: ->(*) do
-                   attrs = baseline_attributes.to_h
-                   if exists_at_timestamps.include?(baseline_timestamp)
-                     attrs = attrs.merge({
-                                           '_links': {
-                                             'self': {
-                                               'href': API::V3::Utilities::PathHelper::ApiV3Path \
-                                                 .work_package(id, timestamps: baseline_timestamp)
-                                             }
-                                           }
-                                         })
-                   end
-                   attrs = attrs.merge({
-                                         '_meta': {
-                                           'timestamp': baseline_timestamp.to_s,
-                                           'matchesFilters': matches_query_filters_at_baseline_timestamp?,
-                                           'exists': exists_at_timestamps.include?(baseline_timestamp)
-                                         }.compact
-                                       })
-                   attrs
-                 end,
-                 embedded: true,
-                 uncachable: true
-
         property :attributes_by_timestamp,
                  if: ->(*) {
                    represented.respond_to?(:attributes_by_timestamp) && represented.attributes_by_timestamp.present?

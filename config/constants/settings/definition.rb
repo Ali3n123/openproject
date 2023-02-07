@@ -1175,6 +1175,10 @@ module Settings
         @all.keys.include?(name.to_s)
       end
 
+      def all
+        @all
+      end
+
       private
 
       # Currently only required for testing.

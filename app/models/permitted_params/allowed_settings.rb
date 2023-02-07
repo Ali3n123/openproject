@@ -20,7 +20,7 @@ class PermittedParams
     module_function
 
     def all
-      keys = Setting.definitions.map(&:name)
+      keys = Setting.definitions.keys
 
       restrictions.select(&:applicable?).each do |restriction|
         restricted_keys = restriction.restricted_keys

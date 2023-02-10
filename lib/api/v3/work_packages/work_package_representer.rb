@@ -332,25 +332,27 @@ module API
 
         property :_meta,
                  if: ->(*) {
-                   represented.respond_to?(:matches_query_filters_at_timestamps)
+                   timestamps_active?
                  },
                  getter: ->(*) {
-                   {
-                     # This meta property states whether the attributes of the work package at the
-                     # last given timestamp (commonly the current time) match the filters of the
-                     # query. https://github.com/opf/openproject/pull/11783
-                     'matchesFilters': represented.matches_query_filters_at_timestamp?(timestamps.last),
-
-                     # This meta property states whether the work package exists at the last given
-                     # timestamp (commonly the current time).
+                   meta = {
+                     # This meta property states whether the work package exists at time.
                      # https://github.com/opf/openproject/pull/11783#issuecomment-1374897874
-                     #
-                     'exists': represented.exists_at_timestamps.include?(timestamps.last),
+                     'exists': represented.exists_at_timestamp?,
 
                      # This meta property holds the timestamp of the data of the work package.
                      #
                      'timestamp': timestamps.last.to_s
                    }
+
+                   if represented.with_query?
+                     # This meta property states whether the attributes of the work package at the
+                     # timestamp match the filters of the query.
+                     # https://github.com/opf/openproject/pull/11783
+                     meta.merge('matchesFilters': represented.matches_filters_at_timestamp?)
+                   else
+                     meta
+                   end
                  },
                  uncacheable: true,
                  exec_context: :decorator
@@ -478,13 +480,12 @@ module API
 
         property :attributes_by_timestamp,
                  if: ->(*) {
-                   represented.respond_to?(:attributes_by_timestamp) && represented.attributes_by_timestamp.present?
+                   timestamps_active?
                  },
                  getter: ->(*) do
-                   represented.timestamps.collect do |timestamp|
+                   represented.at_timestamps.map do |work_package_at_timestamp|
                      API::V3::WorkPackages::WorkPackageAtTimestampRepresenter
-                       .create(represented,
-                               timestamp:,
+                       .create(work_package_at_timestamp,
                                current_user:)
                    end
                  end,
@@ -676,6 +677,10 @@ module API
         def ordered_custom_actions
           # As the custom actions are sometimes set as an array
           @ordered_custom_actions ||= represented.custom_actions(current_user).to_a.sort_by(&:position)
+        end
+
+        def timestamps_active?
+          timestamps.any?
         end
 
         # Attachments need to be eager loaded for the description

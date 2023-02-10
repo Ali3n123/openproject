@@ -33,7 +33,6 @@ import {
   ElementRef,
   EventEmitter,
   forwardRef,
-  HostBinding,
   Injector,
   Input,
   OnInit,
@@ -44,8 +43,8 @@ import {
 import { I18nService } from 'core-app/core/i18n/i18n.service';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {
-    areDatesEqual,
-    mappedDate,
+  areDatesEqual,
+  mappedDate,
   onDayCreate,
   parseDate,
   setDates,
@@ -56,7 +55,12 @@ import { DatePicker } from '../datepicker';
 import flatpickr from 'flatpickr';
 import { DayElement } from 'flatpickr/dist/types/instance';
 import { ActiveDateChange, DateFields, DateKeys } from '../wp-multi-date-form/wp-multi-date-form.component';
-import { fromEvent, merge, Observable, Subject } from 'rxjs';
+import {
+  fromEvent,
+  merge,
+  Observable,
+  Subject,
+} from 'rxjs';
 import { UntilDestroyedMixin } from 'core-app/shared/helpers/angular/until-destroyed.mixin';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { DeviceService } from 'core-app/core/browser/device.service';
@@ -88,7 +92,7 @@ export class OpMultiDatePickerComponent extends UntilDestroyedMixin implements O
 
   @Input() name = '';
 
-  @Input() fieldName:string = '';
+  @Input() fieldName = '';
 
   @Input() value:string[] = [];
 
@@ -196,8 +200,10 @@ export class OpMultiDatePickerComponent extends UntilDestroyedMixin implements O
       });
   }
 
-  ngOnInit(): void {
-    this.htmlId = `wp-datepicker-${this.fieldName as string}`;
+  ngOnInit():void {
+    this.htmlId = `wp-datepicker-${this.fieldName}`;
+    this.dates.start = this.value?.[0];
+    this.dates.end = this.value?.[1];
 
     this.setCurrentActivatedField(this.initialActivatedField);
   }
@@ -307,7 +313,7 @@ export class OpMultiDatePickerComponent extends UntilDestroyedMixin implements O
           );
         },
       },
-      this.flatpickrTarget.nativeElement,
+      this.flatpickrTarget.nativeElement as HTMLElement,
     );
   }
 
@@ -458,7 +464,7 @@ export class OpMultiDatePickerComponent extends UntilDestroyedMixin implements O
   }
 
   writeValue(newValue:string[]|null):void {
-    const value = (newValue || []).map(d => this.timezoneService.formattedISODate(d));
+    const value = (newValue || []).map((d) => this.timezoneService.formattedISODate(d));
     if (value[0] === this.dates.start && value[1] === this.dates.end) {
       return;
     }

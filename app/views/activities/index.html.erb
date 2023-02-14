@@ -54,7 +54,14 @@ See COPYRIGHT and LICENSE files for more details.
           </div>
           <% if e.event_description.present? -%>
             <div class="op-project-activity-list--item-description">
-              <%= truncate_formatted_text(e.event_description) %>
+              <% if journal.journable_type == "WorkPackage" -%>
+                <ul class="op-project-activity-list--item-description-details">
+                  <li class="op-project-activity-list--item-description-detail"><strong>Comment added</strong></li>
+                  <%= truncate_formatted_text(e.event_description) %>
+                </ul>
+              <% else -%>
+                <%= truncate_formatted_text(e.event_description) %>
+              <% end -%>
             </div>
           <% end -%>
           <% unless journal.initial? %>

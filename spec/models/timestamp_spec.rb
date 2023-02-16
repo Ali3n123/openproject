@@ -162,6 +162,16 @@ describe Timestamp do
         expect { subject }.to raise_error ArgumentError
       end
     end
+
+    describe 'when providing a Timestamp' do
+      subject { described_class.parse(provided) }
+
+      let(:provided) { described_class.new }
+
+      it "returns the provided timestamp" do
+        expect(subject).to eql provided
+      end
+    end
   end
 
   describe ".parse_multiple" do
